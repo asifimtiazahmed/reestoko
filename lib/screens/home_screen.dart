@@ -43,7 +43,7 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget build(BuildContext context) {
     AppLogger.d('HomeScreen built');
     return Scaffold(
-      appBar: AppBar(title: const Text('Base Project')),
+      appBar: AppBar(title: const Text('Reestoko')),
       body: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
