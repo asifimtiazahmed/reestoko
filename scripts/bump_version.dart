@@ -8,17 +8,16 @@ void main() {
   }
 
   final lines = file.readAsLinesSync();
-  final versionRegex = RegExp(r'^(version:\s+\d+\.\d+\.)(\d+)(\+)(\d+)$');
+  // Matches 'version: x.y.z+w' capturing 'version: x.y.z' and 'w'
+  final versionRegex = RegExp(r'^(version:\s+\d+\.\d+\.\d+)\+(\d+)$');
   
   final updatedLines = lines.map((line) {
     final match = versionRegex.firstMatch(line);
     if (match != null) {
-      final prefix = match.group(1)!;
-      final patch = int.parse(match.group(2)!) + 1;
-      final plus = match.group(3)!;
-      final build = int.parse(match.group(4)!) + 1;
-      final newVersion = '$prefix$patch$plus$build';
-      print('Bumping version: ${match.group(0)} -> $newVersion');
+      final baseVersion = match.group(1)!;
+      final buildNumber = int.parse(match.group(2)!) + 1;
+      final newVersion = '$baseVersion+$buildNumber';
+      print('Bumping build number: ${match.group(0)} -> $newVersion');
       return newVersion;
     }
     return line;
