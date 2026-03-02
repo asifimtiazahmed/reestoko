@@ -6,7 +6,7 @@ import 'package:go_router/go_router.dart';
 import 'package:overlay_support/overlay_support.dart';
 import 'package:reestoko/app_crashalytics.dart';
 import 'package:reestoko/router/app_router.dart';
-import 'package:reestoko/screens/home_screen.dart';
+
 import 'package:reestoko/services/app_config.dart';
 import 'package:reestoko/services/app_initializer.dart';
 import 'package:reestoko/theme/app_theme.dart';
@@ -40,7 +40,7 @@ class Reestoko extends StatelessWidget {
         themeMode: ThemeMode.system,
         routerConfig: router,
         debugShowCheckedModeBanner: false,
-        builder: (context, child) => AppInitializer(child: HomeScreen()),
+        builder: (context, child) => AppInitializer(child: child!),
       ),
     );
   }
