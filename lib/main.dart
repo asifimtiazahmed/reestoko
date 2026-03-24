@@ -1,15 +1,18 @@
+/// **Architecture Layer**: Entry Point
+/// **Purpose**: Bootstraps and runs the Flutter application.
+
 import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:get_it/get_it.dart';
 import 'package:go_router/go_router.dart';
 import 'package:overlay_support/overlay_support.dart';
-import 'package:reestoko/app_crashalytics.dart';
-import 'package:reestoko/router/app_router.dart';
-import 'package:reestoko/screens/home_screen.dart';
-import 'package:reestoko/services/app_config.dart';
-import 'package:reestoko/services/app_initializer.dart';
-import 'package:reestoko/theme/app_theme.dart';
+import 'package:reestoko/core/services/app_crashalytics.dart';
+import 'package:reestoko/core/router/app_router.dart';
+
+import 'package:reestoko/core/di/app_config.dart';
+import 'package:reestoko/core/di/app_initializer.dart';
+import 'package:reestoko/core/theme/app_theme.dart';
 
 void main() async {
   runZonedGuarded(
@@ -40,7 +43,7 @@ class Reestoko extends StatelessWidget {
         themeMode: ThemeMode.system,
         routerConfig: router,
         debugShowCheckedModeBanner: false,
-        builder: (context, child) => AppInitializer(child: HomeScreen()),
+        builder: (context, child) => AppInitializer(child: child!),
       ),
     );
   }
