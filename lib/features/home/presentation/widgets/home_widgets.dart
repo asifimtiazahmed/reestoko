@@ -3,6 +3,11 @@
 
 import 'package:fluentui_system_icons/fluentui_system_icons.dart';
 import 'package:flutter/material.dart';
+import 'package:reestoko/core/network/models/barcode_product_dto.dart';
+import 'package:reestoko/core/network/models/inventory_item_dto.dart';
+import 'package:reestoko/core/widgets/barcode_scanner_dialog.dart';
+import 'package:reestoko/features/inventory/presentation/viewmodels/inventory_view_model.dart';
+import 'package:reestoko/features/inventory/presentation/widgets/add_edit_item_modal.dart';
 
 // =============================================================================
 // Header Section
@@ -40,9 +45,14 @@ class HomeHeader extends StatelessWidget {
                   ),
                 ],
               ),
-              const CircleAvatar(
+              CircleAvatar(
                 radius: 20,
-                backgroundImage: NetworkImage('https://i.pravatar.cc/150?img=12'), // Dummy profile pic
+                backgroundColor: Theme.of(context).primaryColor.withValues(alpha: 0.15),
+                child: Icon(
+                  FluentIcons.person_24_filled,
+                  color: Theme.of(context).primaryColor,
+                  size: 22,
+                ),
               ),
             ],
           ),
@@ -177,6 +187,37 @@ class StatsRow extends StatelessWidget {
 class HomeSearchBar extends StatelessWidget {
   const HomeSearchBar({super.key});
 
+  void _openBarcodeScanner(BuildContext context) async {
+    final BarcodeProductDto? product = await showDialog<BarcodeProductDto>(
+      context: context,
+      builder: (context) => const BarcodeScannerDialog(),
+    );
+
+    if (product != null && context.mounted) {
+      // Auto-open Add Item modal with scanned metadata
+      showModalBottomSheet(
+        context: context,
+        isScrollControlled: true,
+        backgroundColor: Colors.transparent,
+        builder: (context) => AddEditItemModal(
+          initialItem: InventoryItemDto(
+            id: DateTime.now().millisecondsSinceEpoch.toString(),
+            name: product.productName,
+            zoneId: 'zone_fridge',
+            category: product.category ?? 'Dairy',
+            quantity: 1,
+            unit: 'pcs',
+            barcode: product.barcode,
+          ),
+          onSave: (newItem) {
+            final vm = InventoryViewModel();
+            vm.addItem('house_123', newItem);
+          },
+        ),
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Padding(
@@ -197,7 +238,11 @@ class HomeSearchBar extends StatelessWidget {
           decoration: InputDecoration(
             hintText: 'Search items...',
             prefixIcon: Icon(FluentIcons.search_24_regular, color: Colors.grey[400]),
-            suffixIcon: Icon(FluentIcons.barcode_scanner_24_regular, color: Colors.black87),
+            suffixIcon: IconButton(
+              icon: const Icon(FluentIcons.barcode_scanner_24_regular, color: Colors.green),
+              onPressed: () => _openBarcodeScanner(context),
+              tooltip: 'Scan Barcode',
+            ),
             border: InputBorder.none,
             contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
           ),

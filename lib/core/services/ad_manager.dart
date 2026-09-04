@@ -1,5 +1,5 @@
-/// **Architecture Layer**: Core
-/// **Purpose**: External interfaces, API, or device services.
+/// **Architecture Layer**: Core / Services
+/// **Purpose**: Cross-platform AdManager for Google Mobile Ads (Android & iOS).
 
 import 'dart:io';
 
@@ -15,13 +15,19 @@ class AdManager {
 
   bool _isInitialized = false;
 
-  /// Initialize the Google Mobile Ads SDK.
+  /// Check if Google Mobile Ads are supported on current platform
+  bool get isSupported {
+    if (kIsWeb) return false;
+    return Platform.isAndroid || Platform.isIOS;
+  }
+
+  /// Initialize the Google Mobile Ads SDK on supported mobile platforms.
   Future<void> init() async {
-    if (_isInitialized) return;
+    if (!isSupported || _isInitialized) return;
     try {
       await MobileAds.instance.initialize();
       _isInitialized = true;
-      AppLogger.i('AdManager initialized');
+      AppLogger.i('AdManager initialized for mobile platform');
     } catch (e) {
       AppLogger.e('Failed to initialize AdManager', e);
     }
@@ -33,31 +39,39 @@ class AdManager {
 
   bool get _useTestIds => kDebugMode; // Switches to test IDs in debug mode
 
-  String get bannerAdUnitId {
+  String? get bannerAdUnitId {
+    if (!isSupported) return null;
     if (Platform.isAndroid) {
       return _useTestIds ? AppConstants.testBannerIdAndroid : AppConstants.prodBannerIdAndroid;
     } else if (Platform.isIOS) {
       return _useTestIds ? AppConstants.testBannerIdiOS : AppConstants.prodBannerIdiOS;
     }
-    throw UnsupportedError("Unsupported platform");
+    return null;
   }
 
-  String get interstitialAdUnitId {
+  String? get interstitialAdUnitId {
+    if (!isSupported) return null;
     if (Platform.isAndroid) {
       return _useTestIds ? AppConstants.testInterstitialIdAndroid : AppConstants.prodInterstitialIdAndroid;
     } else if (Platform.isIOS) {
       return _useTestIds ? AppConstants.testInterstitialIdiOS : AppConstants.prodInterstitialIdiOS;
     }
-    throw UnsupportedError("Unsupported platform");
+    return null;
   }
 
   // ===========================================================================
   // Ad Loading Helper Methods
   // ===========================================================================
 
-  BannerAd createBannerAd({required Function(Ad) onAdLoaded, Function(Ad, LoadAdError)? onAdFailedToLoad}) {
+  BannerAd? createBannerAd({
+    required Function(Ad) onAdLoaded,
+    Function(Ad, LoadAdError)? onAdFailedToLoad,
+  }) {
+    final adUnitId = bannerAdUnitId;
+    if (!isSupported || adUnitId == null) return null;
+
     return BannerAd(
-      adUnitId: bannerAdUnitId,
+      adUnitId: adUnitId,
       size: AdSize.banner,
       request: const AdRequest(),
       listener: BannerAdListener(

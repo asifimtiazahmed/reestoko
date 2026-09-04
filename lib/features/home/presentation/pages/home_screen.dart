@@ -4,12 +4,28 @@
 import 'package:flutter/material.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
 import 'package:provider/provider.dart';
-import 'package:reestoko/features/home/presentation/viewmodels/home_view_model.dart';
 import 'package:reestoko/core/utils/app_logger.dart';
+import 'package:reestoko/features/home/presentation/viewmodels/home_view_model.dart';
 import 'package:reestoko/features/home/presentation/widgets/home_widgets.dart';
+import 'package:reestoko/features/inventory/presentation/viewmodels/inventory_view_model.dart';
+import 'package:reestoko/features/inventory/presentation/widgets/add_edit_item_modal.dart';
 
 class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
+
+  void _openAddModal(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) => AddEditItemModal(
+        onSave: (newItem) {
+          final vm = InventoryViewModel();
+          vm.addItem('house_123', newItem);
+        },
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -50,11 +66,13 @@ class HomeScreen extends StatelessWidget {
             ),
           ),
         ),
-        floatingActionButton: FloatingActionButton(
-          onPressed: () {},
-          backgroundColor: Theme.of(context).colorScheme.tertiary,
-          shape: const CircleBorder(),
-          child: const Icon(Icons.add, color: Colors.white, size: 28),
+        floatingActionButton: Builder(
+          builder: (builderContext) => FloatingActionButton(
+            onPressed: () => _openAddModal(builderContext),
+            backgroundColor: Theme.of(builderContext).colorScheme.tertiary,
+            shape: const CircleBorder(),
+            child: const Icon(Icons.add, color: Colors.white, size: 28),
+          ),
         ),
         floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
       ),

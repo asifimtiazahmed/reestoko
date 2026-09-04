@@ -1,0 +1,704 @@
+openapi: 3.0.3
+info:
+  title: Reestoko REST API
+  description: |
+    Comprehensive OpenAPI specification for Reestoko Smart Household & Inventory Tracking System.
+    Provides endpoints for User Management, Household Administration, Storage Zone operations,
+    Inventory Item management, Priority Action Feed, Smart Shopping List, Barcode lookup, and Reports.
+  version: 1.0.0
+  contact:
+    name: Reestoko Engineering Team
+    email: api@reestoko.app
+
+servers:
+  - url: https://api.reestoko.app/v1
+    description: Production REST Server
+  - url: https://staging-api.reestoko.app/v1
+    description: Staging Environment
+  - url: http://localhost:8080/v1
+    description: Local Development Server
+
+paths:
+  /users/me:
+    get:
+      summary: Get Current Authenticated User Profile
+      operationId: getCurrentUser
+      tags:
+        - User
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: User profile retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+
+    put:
+      summary: Update Current User Profile
+      operationId: updateCurrentUser
+      tags:
+        - User
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateUserRequest'
+      responses:
+        '200':
+          description: User profile updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+
+  /households:
+    post:
+      summary: Create a New Household
+      operationId: createHousehold
+      tags:
+        - Household
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateHouseholdRequest'
+      responses:
+        '201':
+          description: Household created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Household'
+
+  /households/{householdId}:
+    get:
+      summary: Get Household Details
+      operationId: getHouseholdById
+      tags:
+        - Household
+      security:
+        - BearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/HouseholdIdParam'
+      responses:
+        '200':
+          description: Household details retrieved
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Household'
+
+  /households/{householdId}/zones:
+    get:
+      summary: List All Storage Zones for Household
+      operationId: getZones
+      tags:
+        - Zones
+      security:
+        - BearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/HouseholdIdParam'
+      responses:
+        '200':
+          description: List of storage zones
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Zone'
+
+    post:
+      summary: Create a Custom Storage Zone
+      operationId: createZone
+      tags:
+        - Zones
+      security:
+        - BearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/HouseholdIdParam'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateZoneRequest'
+      responses:
+        '201':
+          description: Zone created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Zone'
+
+  /households/{householdId}/inventory:
+    get:
+      summary: List & Search Household Inventory Items
+      operationId: getInventoryItems
+      tags:
+        - Inventory
+      security:
+        - BearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/HouseholdIdParam'
+        - name: zoneId
+          in: query
+          description: Filter items by Storage Zone ID
+          required: false
+          schema:
+            type: string
+        - name: status
+          in: query
+          description: Filter items by stock status (NORMAL, LOW_STOCK, EXPIRING_SOON, EXPIRED)
+          required: false
+          schema:
+            type: string
+            enum: [NORMAL, LOW_STOCK, EXPIRING_SOON, EXPIRED]
+        - name: search
+          in: query
+          description: Keyword search on item name
+          required: false
+          schema:
+            type: string
+      responses:
+        '200':
+          description: List of inventory items matching criteria
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/InventoryItem'
+
+    post:
+      summary: Add New Inventory Item
+      operationId: createInventoryItem
+      tags:
+        - Inventory
+      security:
+        - BearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/HouseholdIdParam'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateInventoryItemRequest'
+      responses:
+        '201':
+          description: Inventory item created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/InventoryItem'
+
+  /households/{householdId}/inventory/{itemId}:
+    get:
+      summary: Get Inventory Item Details
+      operationId: getInventoryItemById
+      tags:
+        - Inventory
+      security:
+        - BearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/HouseholdIdParam'
+        - $ref: '#/components/parameters/ItemIdParam'
+      responses:
+        '200':
+          description: Inventory item details retrieved
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/InventoryItem'
+
+    put:
+      summary: Update Inventory Item
+      operationId: updateInventoryItem
+      tags:
+        - Inventory
+      security:
+        - BearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/HouseholdIdParam'
+        - $ref: '#/components/parameters/ItemIdParam'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateInventoryItemRequest'
+      responses:
+        '200':
+          description: Inventory item updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/InventoryItem'
+
+    delete:
+      summary: Delete Inventory Item
+      operationId: deleteInventoryItem
+      tags:
+        - Inventory
+      security:
+        - BearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/HouseholdIdParam'
+        - $ref: '#/components/parameters/ItemIdParam'
+      responses:
+        '204':
+          description: Inventory item deleted successfully
+
+  /households/{householdId}/priority-feed:
+    get:
+      summary: Get Priority Action Feed Items
+      operationId: getPriorityFeed
+      tags:
+        - Dashboard
+      security:
+        - BearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/HouseholdIdParam'
+      responses:
+        '200':
+          description: Priority feed items (expiring soon and low stock)
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/InventoryItem'
+
+  /households/{householdId}/shopping-list:
+    get:
+      summary: Get Household Shopping List Items
+      operationId: getShoppingList
+      tags:
+        - Shopping
+      security:
+        - BearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/HouseholdIdParam'
+      responses:
+        '200':
+          description: List of shopping items
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ShoppingItem'
+
+    post:
+      summary: Add Item to Shopping List
+      operationId: addShoppingItem
+      tags:
+        - Shopping
+      security:
+        - BearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/HouseholdIdParam'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateShoppingItemRequest'
+      responses:
+        '201':
+          description: Item added to shopping list
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ShoppingItem'
+
+  /households/{householdId}/shopping-list/purchase:
+    post:
+      summary: Complete Purchase & Auto-Restock Selected Shopping Items
+      operationId: purchaseShoppingItems
+      tags:
+        - Shopping
+      security:
+        - BearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/HouseholdIdParam'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PurchaseShoppingItemsRequest'
+      responses:
+        '200':
+          description: Items checked off and auto-restocked into inventory
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PurchaseShoppingItemsResponse'
+
+  /barcode/lookup/{barcode}:
+    get:
+      summary: Lookup Product Metadata by Barcode / EAN
+      operationId: lookupBarcode
+      tags:
+        - External Metadata
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: barcode
+          in: path
+          required: true
+          description: Barcode / EAN 13 code
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Product metadata found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BarcodeProduct'
+        '404':
+          description: Product not found in database
+
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  parameters:
+    HouseholdIdParam:
+      name: householdId
+      in: path
+      required: true
+      description: Unique identifier of the Household
+      schema:
+        type: string
+
+    ItemIdParam:
+      name: itemId
+      in: path
+      required: true
+      description: Unique identifier of the Inventory Item
+      schema:
+        type: string
+
+  responses:
+    UnauthorizedError:
+      description: Access token missing or invalid
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+
+  schemas:
+    User:
+      type: object
+      required:
+        - id
+        - name
+        - email
+      properties:
+        id:
+          type: string
+          example: "usr_987654"
+        name:
+          type: string
+          example: "Alex Johnson"
+        email:
+          type: string
+          format: email
+          example: "alex@example.com"
+        avatarUrl:
+          type: string
+          nullable: true
+          example: "https://i.pravatar.cc/150?u=user_123"
+        householdId:
+          type: string
+          example: "house_123"
+        isPremium:
+          type: boolean
+          default: false
+
+    UpdateUserRequest:
+      type: object
+      properties:
+        name:
+          type: string
+        avatarUrl:
+          type: string
+
+    Household:
+      type: object
+      required:
+        - id
+        - name
+        - memberUids
+      properties:
+        id:
+          type: string
+          example: "house_123"
+        name:
+          type: string
+          example: "Sweet Home"
+        memberUids:
+          type: array
+          items:
+            type: string
+          example: ["usr_987654"]
+        createdAt:
+          type: string
+          format: date-time
+
+    CreateHouseholdRequest:
+      type: object
+      required:
+        - name
+      properties:
+        name:
+          type: string
+          example: "Sweet Home"
+
+    Zone:
+      type: object
+      required:
+        - id
+        - name
+        - iconName
+      properties:
+        id:
+          type: string
+          example: "zone_fridge"
+        name:
+          type: string
+          example: "Fridge"
+        iconName:
+          type: string
+          example: "snowflake"
+        itemCount:
+          type: integer
+          example: 42
+
+    CreateZoneRequest:
+      type: object
+      required:
+        - name
+        - iconName
+      properties:
+        name:
+          type: string
+        iconName:
+          type: string
+
+    InventoryItem:
+      type: object
+      required:
+        - id
+        - name
+        - zoneId
+        - quantity
+        - unit
+      properties:
+        id:
+          type: string
+          example: "item_001"
+        name:
+          type: string
+          example: "Whole Wheat Bread"
+        zoneId:
+          type: string
+          example: "zone_pantry"
+        category:
+          type: string
+          example: "Bakery"
+        quantity:
+          type: integer
+          example: 2
+        minThreshold:
+          type: integer
+          default: 1
+          example: 1
+        unit:
+          type: string
+          example: "loaf"
+        expirationDate:
+          type: string
+          format: date-time
+          nullable: true
+        barcode:
+          type: string
+          nullable: true
+          example: "012345678905"
+        status:
+          type: string
+          enum: [NORMAL, LOW_STOCK, EXPIRING_SOON, EXPIRED]
+          example: "EXPIRING_SOON"
+        updatedAt:
+          type: string
+          format: date-time
+
+    CreateInventoryItemRequest:
+      type: object
+      required:
+        - name
+        - zoneId
+        - quantity
+        - unit
+      properties:
+        name:
+          type: string
+        zoneId:
+          type: string
+        category:
+          type: string
+        quantity:
+          type: integer
+          minimum: 1
+        minThreshold:
+          type: integer
+          minimum: 1
+          default: 1
+        unit:
+          type: string
+        expirationDate:
+          type: string
+          format: date-time
+        barcode:
+          type: string
+
+    UpdateInventoryItemRequest:
+      type: object
+      properties:
+        name:
+          type: string
+        zoneId:
+          type: string
+        category:
+          type: string
+        quantity:
+          type: integer
+          minimum: 0
+        minThreshold:
+          type: integer
+        unit:
+          type: string
+        expirationDate:
+          type: string
+          format: date-time
+        barcode:
+          type: string
+
+    ShoppingItem:
+      type: object
+      required:
+        - id
+        - name
+        - quantityToBuy
+        - isPurchased
+      properties:
+        id:
+          type: string
+          example: "shop_001"
+        name:
+          type: string
+          example: "Milk 2%"
+        quantityToBuy:
+          type: integer
+          example: 1
+        unit:
+          type: string
+          example: "gallon"
+        inventoryItemId:
+          type: string
+          nullable: true
+        isPurchased:
+          type: boolean
+          default: false
+        isAutoGenerated:
+          type: boolean
+          default: false
+
+    CreateShoppingItemRequest:
+      type: object
+      required:
+        - name
+        - quantityToBuy
+      properties:
+        name:
+          type: string
+        quantityToBuy:
+          type: integer
+          minimum: 1
+        unit:
+          type: string
+        inventoryItemId:
+          type: string
+
+    PurchaseShoppingItemsRequest:
+      type: object
+      required:
+        - itemIds
+      properties:
+        itemIds:
+          type: array
+          items:
+            type: string
+        autoRestockToInventory:
+          type: boolean
+          default: true
+
+    PurchaseShoppingItemsResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+        restockedCount:
+          type: integer
+
+    BarcodeProduct:
+      type: object
+      required:
+        - barcode
+        - productName
+      properties:
+        barcode:
+          type: string
+          example: "012345678905"
+        productName:
+          type: string
+          example: "Organic Whole Milk 1L"
+        brand:
+          type: string
+          example: "Organic Valley"
+        category:
+          type: string
+          example: "Dairy"
+        imageUrl:
+          type: string
+          example: "https://images.openfoodfacts.org/images/products/001.jpg"
+
+    ErrorResponse:
+      type: object
+      required:
+        - code
+        - message
+      properties:
+        code:
+          type: string
+          example: "UNAUTHORIZED"
+        message:
+          type: string
+          example: "Bearer token is invalid or expired."
