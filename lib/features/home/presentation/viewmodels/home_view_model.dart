@@ -1,5 +1,5 @@
 /// **Architecture Layer**: Presentation (ViewModel)
-/// **Purpose**: Manages the state and business logic for the associated Page.
+/// **Purpose**: Manages the state and business logic for the Home Screen.
 
 import 'package:flutter/material.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
@@ -17,6 +17,8 @@ class HomeViewModel extends ChangeNotifier {
   }
 
   void _loadBannerAd() {
+    if (!AdManager().isSupported) return;
+
     _bannerAd = AdManager().createBannerAd(
       onAdLoaded: (ad) {
         _isAdLoaded = true;
@@ -25,7 +27,9 @@ class HomeViewModel extends ChangeNotifier {
       onAdFailedToLoad: (ad, error) {
         ad.dispose();
       },
-    )..load();
+    );
+
+    _bannerAd?.load();
   }
 
   @override
